@@ -14,9 +14,28 @@ interface ResultsTableProps {
   leads: Lead[];
 }
 
+import { exportToCSV, exportToExcel } from "../lib/export";
+import { Download } from "lucide-react";
+
 export default function ResultsTable({ leads }: ResultsTableProps) {
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
+      <div className="flex justify-end gap-2 p-4 border-b border-white/10">
+        <button 
+          onClick={() => exportToCSV(leads, 'leadmap_export')}
+          className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"
+        >
+          <Download className="w-3 h-3" />
+          CSV
+        </button>
+        <button 
+          onClick={() => exportToExcel(leads, 'leadmap_export')}
+          className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors shadow-lg"
+        >
+          <Download className="w-3 h-3" />
+          Excel
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-zinc-400">
           <thead className="bg-white/5 text-xs uppercase text-zinc-300">
