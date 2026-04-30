@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+import { setupQueueEvents, scrapeQueue } from './queue';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -17,8 +19,32 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
+// Setup Queue Events for WebSockets
+setupQueueEvents(io);
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'LeadMap API is running' });
+});
+
+app.post('/api/v1/search', async (req, res) => {
+  try {
+    const { query, location, filters } = req.body;
+    
+    if (!query || !location) {
+      return res.status(400).json({ error: 'Query and location are required' });
+    }
+
+    const job = await scrapeQueue.add('scrape', {
+      query,
+      location,
+      filters
+    });
+
+    res.json({ jobId: job.id, status: 'queued' });
+  } catch (error) {
+    console.error('Error creating search job:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 io.on('connection', (socket) => {
