@@ -1,0 +1,761 @@
+﻿LeadMap Pro
+Software Requirements Specification (SRS)
+Google Maps Lead Intelligence & Competitor Analysis Platform
+Document Version
+1.0 â€” Initial Release
+Date
+April 2026
+Status
+Draft â€” For Development Review
+Classification
+Confidential
+Product
+LeadMap Pro â€” B2B Lead Intelligence SaaS
+Prepared by
+Product & Strategy Team
+1. Introduction
+1.1 Product Overview
+LeadMap Pro is a cloud-based SaaS web application that enables businesses, sales teams, marketing agencies, and entrepreneurs to discover, qualify, and export high-intent B2B leads by intelligently querying real-world data from Google Maps and supplementary public web sources.
+Unlike existing tools that are either too technical (raw scrapers) or too limited (browser extensions), LeadMap Pro is designed to be the definitive no-code lead intelligence platform â€” combining Google Maps data extraction, AI-powered enrichment, competitor mapping, and CRM-ready export into a single, beautiful, real-time dashboard.
+1.2 Vision Statement
+PRODUCT VISION
+"To be the world's most intuitive lead intelligence platform â€” turning Google Maps' 200 million+ business listings into a real-time, filterable, AI-enriched lead database that any business can use in under 60 seconds, with no technical knowledge required."
+1.3 Problem Statement
+The core problem this product solves is threefold:
+Finding qualified leads is manual and time-consuming. Sales teams spend hours copying business data from Google Maps row by row.
+Existing scraping tools are either too technical (requiring code and proxy management) or too limited (capped at 120 results, no enrichment).
+There is no single tool that combines lead discovery, competitor mapping, review intelligence, and CRM export in one clean interface.
+MARKET VALIDATION
+The web scraping industry crossed $1.03 billion in 2025 and is projected to reach $2 billion by 2030 (14.2% YoY growth â€” Mordor Intelligence). Google Maps contains 200M+ business listings across 220+ countries, with 2 billion monthly active users. 88% of consumers use Google Maps to find local businesses (BrightLocal, 2026). The Google Places API costs $17â€“$35 per 1,000 requests for bulk data â€” making a dedicated SaaS solution 10x more cost-effective at scale.
+1.4 Objectives
+Deliver a no-code lead generation tool accessible to non-technical users within 60 seconds of signup.
+Extract and enrich real-time Google Maps business data at scale, bypassing the 120-result cap.
+Provide AI-powered competitor analysis, gap detection, and market saturation scoring.
+Enable CRM-ready data export (CSV, Excel, JSON, Webhook, Zapier/Make).
+Build a legally compliant, rate-limited scraping engine using a hybrid API + scraping architecture.
+Launch a subscription SaaS model with a meaningful free tier and tiered paid plans.
+1.5 Scope
+In-scope for Version 1.0 (MVP):
+Industry and niche selector with curated taxonomy (100+ categories)
+Geographic targeting: country, state/region, city, postal code, custom radius
+Real-time Google Maps data extraction: name, address, phone, website, rating, review count, hours, category
+AI-powered website enrichment: email, social profiles, tech stack detection
+Competitor analysis panel: density map, rating comparison, review velocity
+Lead scoring and qualification filters
+Export: CSV, Excel, JSON, clipboard copy
+User authentication, subscription billing, usage metering
+Out of scope for V1.0 (planned V2+):
+CRM native integrations (HubSpot, Salesforce) â€” V2
+Automated outreach / email sequences â€” V2
+White-label / agency accounts â€” V2
+Mobile native app â€” V3
+AI review sentiment analysis at scale â€” V2
+1.6 Definitions & Acronyms
+Term / Acronym
+Definition
+SRS
+Software Requirements Specification
+GMB
+Google My Business â€” the platform behind Google Maps business listings
+Places API
+Google's official Places API for accessing map business data
+Lead
+A qualifying business contact extracted from Google Maps with enriched contact data
+Enrichment
+The process of visiting a business website to extract additional data (email, social links, tech stack)
+Niche
+A specific sub-category of an industry (e.g. 'Wedding Photography' under 'Photography')
+Scraping Engine
+The server-side headless browser pipeline that extracts data from Google Maps
+Grid Search
+A technique to bypass the 60â€“120 result cap by dividing a target area into smaller geographic cells
+Lead Score
+An algorithmic quality rating (0â€“100) assigned to each extracted lead
+CRM
+Customer Relationship Management software
+API
+Application Programming Interface
+MVP
+Minimum Viable Product
+GDPR
+General Data Protection Regulation (EU)
+CFAA
+Computer Fraud and Abuse Act (US)
+2. Market Research & Competitive Landscape
+2.1 Target Market
+LeadMap Pro serves multiple user segments, each with distinct needs and willingness to pay:
+Segment
+Profile
+Primary Use Case
+Freelance Sales Reps
+Solo operators doing outbound prospecting
+Build call lists for a specific city + niche
+Digital Marketing Agencies
+10â€“50 person teams managing local clients
+Competitor analysis + local SEO audits for clients
+Small Business Owners
+Restaurants, trades, services
+Find local competitors and understand market positioning
+B2B SaaS Sales Teams
+SDR/BDR teams at growth-stage companies
+Territory mapping and ICP qualification at volume
+Recruiters
+HR / talent acquisition firms
+Identify hiring companies in specific industries and areas
+Real Estate Investors
+Commercial property investors
+Map commercial landlords, businesses vacating space
+Data Analysts / Researchers
+Market research firms
+Bulk data collection for industry and geographic analysis
+2.2 Competitive Analysis
+The following tools represent the current competitive landscape. LeadMap Pro is differentiated by combining all capabilities into a single, no-code, real-time interface with AI enrichment.
+Competitor
+Type
+Max Results
+Enrichment
+Price / mo
+Key Gap
+Outscraper
+Cloud SaaS
+Unlimited
+Yes (email + social)
+$30+
+No real-time UI, CSV-only workflow
+Scrap.io
+Cloud SaaS
+Unlimited
+Yes (full enrichment)
+$49+
+No competitor mapping or niche taxonomy
+Apify Actor
+Dev platform
+Unlimited
+Add-ons only
+$49+
+Requires technical setup, not no-code
+Leads Sniper
+Chrome Ext
+120 / search
+Limited
+$0â€“$29
+Browser-only, no cloud, no enrichment
+Lobstr.io
+Cloud SaaS
+Unlimited
+Partial
+$49+
+No competitor intelligence layer
+Octoparse
+Desktop + Cloud
+Unlimited
+Via templates
+$75+
+Complex UI, not purpose-built for Maps
+LeadMap Pro
+Cloud SaaS
+Unlimited
+Full AI enrichment
+$0â€“$79
+â€” (our product)
+2.3 Unique Differentiators
+LeadMap Pro is positioned as the only tool that delivers all five pillars simultaneously:
+Pillar
+What It Means for Users
+1. Real-Time Interface
+Search, filter, and preview leads in a live map + table view â€” no CSV download loop
+2. Grid Search Engine
+Bypass the 120-result cap by auto-dividing areas into a geographic grid of sub-searches
+3. AI Enrichment Layer
+After Maps extraction, automatically crawl business websites for emails, social links, and tech stack
+4. Competitor Intelligence
+Visualize competitor density, rating distribution, review velocity, and market gaps on a heatmap
+5. No-Code Lead Scoring
+Automatically score every lead (0â€“100) based on recency, completeness, rating, and review activity
+3. Legal & Compliance Framework
+3.1 Legal Basis for Data Collection
+Scraping publicly available Google Maps data is a legally nuanced area. The following framework governs LeadMap Pro's approach:
+KEY LEGAL PRECEDENT
+In hiQ Labs v. LinkedIn (2019, affirmed 2022), the US Ninth Circuit ruled that scraping publicly visible data (data accessible without logging in) does not violate the Computer Fraud and Abuse Act (CFAA). This ruling is the primary legal basis for commercially operating Google Maps scraping tools. Google's Terms of Service prohibit scraping, but ToS violations are a private contract matter (risk: account ban), not a criminal or civil law matter.
+3.2 Compliance Requirements by Jurisdiction
+Law / Regulation
+Jurisdiction
+LeadMap Pro Compliance Action
+CFAA (Computer Fraud and Abuse Act)
+United States
+Only scrape public, non-authenticated data. No account creation. No bypassing of access controls.
+GDPR (General Data Protection Regulation)
+European Union
+B2B business data (names, addresses, phones) is not personal data under GDPR. Individual emails trigger Article 6(1)(f) legitimate interest. Include opt-out in all enriched contact lists.
+CCPA (California Consumer Privacy Act)
+California, USA
+Provide data deletion mechanism. Do not sell individual personal data. Honor opt-out requests within 15 business days.
+CAN-SPAM Act
+United States
+All exported lead lists include unsubscribe guidance. Platform provides CAN-SPAM compliant export templates.
+UK GDPR / DPA 2018
+United Kingdom
+Same as EU GDPR. ICO registration required if processing UK resident data at scale.
+Google ToS
+Global
+Do not use Google API keys for scraping beyond free tier. Rate-limit all requests. Do not store Google Maps data beyond 30 days for API-derived data (scraping has no caching restriction).
+3.3 Data Handling Policy
+All extracted business data is treated as commercial/factual data, not personal data, under the GDPR distinction.
+Individual email addresses collected via website enrichment are tagged as 'enriched contact' and subject to opt-out rights.
+Scraped data is stored in encrypted databases with a configurable data retention period (default: 90 days).
+No scraped data is sold to third parties. Data belongs to the user who initiated the scrape.
+All scraping operations are rate-limited server-side to avoid causing server harm to Google's infrastructure.
+Users must agree to a Data Use Policy before exporting lead lists, confirming compliant outreach use.
+4. System Architecture
+4.1 Architecture Overview
+LeadMap Pro uses a decoupled, microservices-inspired architecture with three distinct layers: the client-facing Next.js web application, the Node.js API gateway, and the Python-based distributed scraping engine.
+ARCHITECTURE DIAGRAM (ASCII)
+USER BROWSER (Next.js / React)
+     |  REST + WebSocket (real-time results streaming)
+API GATEWAY  (Node.js / Express + Auth + Rate Limiting)
+     |               |                    |
+SCRAPING ENGINE    ENRICHMENT ENGINE     AI SCORING ENGINE
+(Python/Playwright) (Python/Scrapy)       (Python/ML + OpenAI)
+     |               |                    |
+JOB QUEUE (Redis + BullMQ)   â†â†’   PROXY POOL (Residential IPs)
+     |
+DATABASE LAYER: PostgreSQL (leads) + Redis (cache) + S3 (exports)
+4.2 Technology Stack
+Layer
+Technology
+Rationale
+Frontend
+Next.js 14 (React) + TypeScript
+SSR for SEO, App Router for streaming UI, TypeScript for type safety
+Styling
+Tailwind CSS + shadcn/ui
+Rapid, consistent, accessible component library
+Maps Visualisation
+Mapbox GL JS or Leaflet.js
+Interactive heatmaps, cluster markers, polygon drawing for area selection
+Backend API
+Node.js + Express / Fastify
+High-concurrency async API, WebSocket support for streaming results
+Authentication
+Clerk or Supabase Auth
+JWT-based auth, social login (Google, GitHub), magic links
+Scraping Engine
+Python + Playwright (headless Chromium)
+Full JS rendering needed for dynamic Google Maps content
+Proxy Management
+Bright Data or Oxylabs residential proxies
+Residential IPs to avoid detection; auto-rotation per request
+Enrichment Engine
+Python + Scrapy + BeautifulSoup
+Fast HTML parsing for business websites to extract emails and social links
+AI Scoring
+OpenAI GPT-4o API + custom ML model
+Lead scoring, niche classification, review sentiment summary
+Job Queue
+Redis + BullMQ
+Async job management for scrape tasks, retries, priorities
+Primary Database
+PostgreSQL (Supabase or RDS)
+Relational storage for users, leads, campaigns, search history
+Cache
+Redis
+Rate limit tracking, session cache, frequently searched data
+File Storage
+AWS S3 or Cloudflare R2
+Exported CSV/Excel/JSON file storage
+Billing
+Stripe
+Subscription management, usage-based metering, webhook handling
+Deployment
+Vercel (frontend) + Railway or Fly.io (backend)
+Zero-config deployment, auto-scaling, global CDN
+Monitoring
+Sentry + Datadog / PostHog
+Error tracking, performance monitoring, user analytics
+Email
+Resend or Postmark
+Transactional emails (export ready, billing, welcome)
+4.3 Scraping Engine â€” Technical Deep Dive
+4.3.1 The 120-Result Cap Problem
+Google Maps only displays a maximum of 60â€“120 business listings per search query, regardless of how many businesses exist in an area. This is the primary technical challenge all Google Maps tools must solve.
+GRID SEARCH SOLUTION
+LeadMap Pro's Grid Search Engine divides any target geographic area into a dynamic grid of smaller sub-areas (cells). Each cell is small enough that it contains fewer than 60 businesses, meaning a full extraction is possible from each cell. The cells are then merged, deduplicated by Place ID, and returned as a unified result set.
+Algorithm: (1) User defines target area. (2) System queries the area with an initial broad search. (3) If result count approaches 60, the area is recursively split into 4 quadrants. (4) Each quadrant is queried independently. (5) Results are merged and deduplicated using Google Place IDs as unique keys.
+4.3.2 Anti-Detection Strategy
+Residential Proxy Rotation: Every request is routed through a different residential IP address via Bright Data or Oxylabs pools. Residential IPs mimic real user traffic.
+Request Rate Limiting: Server enforces minimum 2â€“5 second delays between requests per proxy, with randomized jitter. Configurable per user tier.
+Browser Fingerprint Randomization: Playwright launches with randomized viewport, user agent, language headers, and timezone to avoid fingerprint-based detection.
+Session Rotation: New browser contexts are created per scrape job, not per request, to mimic natural user sessions.
+CAPTCHA Handling: Integration with 2Captcha or Anti-Captcha API for automated CAPTCHA solving when encountered.
+Retry Logic: Exponential backoff with a maximum of 3 retries per failed request before job failure notification.
+4.3.3 Data Enrichment Pipeline
+After extracting base Google Maps data, the enrichment pipeline runs asynchronously for each lead with a website URL:
+Website crawler visits the business website using Scrapy with a rotating user agent.
+Email Extraction: Parses the homepage, /contact, /about pages for email addresses using regex + NLP.
+Social Profile Detection: Identifies LinkedIn, Facebook, Instagram, Twitter/X links in page HTML.
+Tech Stack Fingerprinting: Reads HTTP headers, HTML meta tags, and script sources to identify CMS, analytics, and advertising pixels (e.g. WordPress, Shopify, Google Ads pixel).
+Contact Page Crawl: If no email found on homepage, visits the /contact or /contact-us path specifically.
+All enrichment data is stored asynchronously and pushed to the user's results panel via WebSocket in real time.
+5. Functional Requirements
+5.1 User Authentication & Onboarding
+FR-01  
+User Registration
+  [High]
+Users can register via email/password, Google OAuth, or magic link. Email verification required before first search.
+FR-02  
+Onboarding Flow
+  [High]
+New users complete a 3-step onboarding: (1) Select their primary industry, (2) Enter their target region, (3) Run their first sample search with 10 free results.
+FR-03  
+User Dashboard
+  [High]
+Authenticated users see a home dashboard showing: search history, saved lead lists, usage meter (credits used / credits remaining), and recent export activity.
+5.2 Search & Discovery Engine
+FR-04  
+Industry & Niche Selector
+  [High]
+A hierarchical category picker with 12 top-level industries and 100+ niche sub-categories. Users can also type a custom keyword. Examples: [Healthcare > Dentists], [Food & Beverage > Coffee Shops], [Trades > Plumbers].
+FR-05  
+Geographic Targeting
+  [High]
+Users can define their search area via: (1) City/town name, (2) Postal/ZIP code, (3) State or region, (4) Country-wide, (5) Custom radius in km/miles from a point, (6) Drawn polygon on an interactive map.
+FR-06  
+Advanced Filters (Pre-Search)
+  [High]
+Before running a search, users can set: minimum star rating (e.g. 4.0+), minimum review count, has website (yes/no), is claimed listing (yes/no), open now filter, keyword in business name.
+FR-07  
+Real-Time Results Streaming
+  [High]
+Results appear in the UI progressively as the scraping engine extracts them â€” not as a single bulk result after completion. Users see a live counter and can preview data before the job finishes.
+FR-08  
+Grid Search Auto-Execution
+  [High]
+When a search area contains more than 60 potential results, the system automatically activates Grid Search mode, splitting the area into sub-cells and merging results with de-duplication. The user sees this visually on the map.
+FR-09  
+Post-Search Filtering
+  [Medium]
+After results load, users can filter the results table by: rating range, review count, has email, has website, has social profiles, lead score range, tech stack detected.
+5.3 Results & Lead Management
+FR-10  
+Lead Results Table
+  [High]
+Results displayed in a sortable, paginated table with columns: Business Name, Category, Rating, Reviews, Address, Phone, Website, Email (enriched), Lead Score, Actions.
+FR-11  
+Lead Detail Panel
+  [High]
+Clicking any lead opens a side panel showing: full address, all phone numbers, website, social links, operating hours, Google Maps embed, review summary, tech stack, and a notes field.
+FR-12  
+Lead Scoring Algorithm
+  [High]
+Every lead receives an automatic score (0â€“100) based on: data completeness (30pts), Google rating (20pts), review count (20pts), website present (15pts), email found (15pts). Score is displayed as a colored badge.
+FR-13  
+Saved Lists
+  [High]
+Users can create named lead lists (e.g. 'Q2 Miami Dentists') and save individual leads or entire search results to a list. Lists persist across sessions.
+FR-14  
+Lead Notes & Tagging
+  [Medium]
+Users can add private notes and custom tags (e.g. 'Contacted', 'Hot Lead', 'Not Qualified') to individual leads. Tags are filterable across lists.
+5.4 Map Intelligence View
+FR-15  
+Interactive Map View
+  [High]
+Parallel to the results table, a map view shows all extracted businesses as clustered pins. Clicking a pin shows a quick preview card with name, rating, and lead score.
+FR-16  
+Competitor Density Heatmap
+  [High]
+A toggle switches the map to heatmap mode, showing competitor concentration by geographic area. Darker areas = more competitors. Lighter areas = market opportunity gaps.
+FR-17  
+Market Gap Detection
+  [Medium]
+AI analyzes the geographic distribution of businesses and highlights 'under-served zones' â€” areas with high population proximity but low business density for the selected niche.
+5.5 Competitor Intelligence Module
+FR-18  
+Competitor Overview Panel
+  [High]
+For any search, a dedicated 'Competitors' tab shows: top 10 businesses by review count, average rating for the area, rating distribution chart, review velocity (new reviews per month estimate).
+FR-19  
+Competitor Deep Dive
+  [Medium]
+Selecting a competitor shows: all their reviews with sentiment summary (AI-generated), their website tech stack, their social presence, estimated monthly website traffic tier (Low/Medium/High), and a SWOT-style summary.
+FR-20  
+Benchmark Report
+  [Low]
+Users can generate a one-page 'Market Benchmark' PDF showing: average rating in the niche, review count percentiles, top keywords in reviews, and where a specific business ranks.
+5.6 Export & Integration
+FR-21  
+CSV Export
+  [High]
+Users can export any lead list or search result as a clean CSV with all available fields. Column visibility is configurable before export.
+FR-22  
+Excel Export
+  [High]
+Multi-sheet Excel export with a 'Summary' sheet (search metadata) and a 'Leads' sheet (full data). Includes conditional formatting for lead scores.
+FR-23  
+JSON Export / API Access
+  [Medium]
+Pro and Business tier users receive an API key to query their saved lead lists programmatically via a REST endpoint. Supports pagination and field selection.
+FR-24  
+Webhook Integration
+  [Medium]
+When a scrape job completes, LeadMap Pro can POST results to a configured webhook URL. Compatible with Zapier, Make (Integromat), and n8n for CRM automation.
+FR-25  
+Clipboard Copy
+  [High]
+One-click copy of any business's phone, email, website, or full address to clipboard.
+6. Non-Functional Requirements
+6.1 Performance
+Requirement
+Target
+First meaningful result delivery
+< 8 seconds from search submission
+Full search completion (500 leads)
+< 5 minutes via Grid Search
+Dashboard page load (P95)
+< 1.5 seconds
+API endpoint response time
+< 300ms (p99) for read queries
+Concurrent scrape jobs (per server)
+Up to 50 simultaneous job workers
+WebSocket result push latency
+< 500ms from extraction to UI display
+Export generation (1,000 leads)
+< 10 seconds for CSV, < 20 seconds for Excel
+System uptime SLA
+99.5% monthly (excluding planned maintenance)
+6.2 Scalability
+Scraping workers are horizontally scalable using containerized Python workers deployed on Railway, Fly.io, or AWS ECS.
+Job queue (BullMQ + Redis) decouples user-facing API from scraping load â€” queue backs up gracefully under load.
+Database uses connection pooling (PgBouncer) to handle concurrent user requests efficiently.
+Frontend is statically generated where possible (Next.js) and served via global CDN (Vercel Edge Network).
+Target: Support 10,000 monthly active users and 2 million leads processed per month in Year 1.
+6.3 Security
+All data in transit encrypted with TLS 1.3. All data at rest encrypted with AES-256.
+API authentication via JWT with 24-hour token expiry and refresh token rotation.
+Rate limiting on all API endpoints: 100 requests/minute for authenticated users, 10/minute for unauthenticated.
+SQL injection prevention via parameterized queries (Prisma ORM).
+XSS prevention via React's built-in escaping and Content Security Policy headers.
+CSRF protection via SameSite cookie policy and CSRF tokens on state-changing requests.
+All user passwords hashed with bcrypt (cost factor 12). Not stored in plaintext.
+Scraping API keys and proxy credentials stored in environment variables / secrets manager. Never in source code.
+6.4 Accessibility & Usability
+WCAG 2.1 Level AA compliance for all core UI components.
+Keyboard navigable search and results interface.
+Time-to-first-lead target: a new user should be able to complete their first search in under 60 seconds with no documentation.
+Responsive design: fully functional on desktop (primary), tablet (secondary). Mobile-readable but not mobile-optimized in V1.
+All loading states, empty states, and error states must have clear, actionable messaging.
+7. Data Model
+7.1 Core Entities
+Entity
+Key Fields
+Notes
+User
+id, email, plan_tier, credits_remaining, created_at, stripe_customer_id
+Authenticated platform user
+SearchJob
+id, user_id, query, location, filters, status, created_at, completed_at
+A scrape job initiated by a user
+Lead
+id, search_job_id, google_place_id, name, address, phone, website, rating, review_count, category, lat, lng, hours, is_claimed
+Base data from Google Maps
+EnrichedLead
+lead_id, email, social_links (JSON), tech_stack (JSON), enrichment_status, enriched_at
+Additional data from website crawl
+LeadScore
+lead_id, score, breakdown (JSON), scored_at
+AI-calculated quality score
+LeadList
+id, user_id, name, description, created_at, lead_count
+User-curated collection of leads
+LeadListItem
+list_id, lead_id, notes, tags (array), added_at, status
+Junction table with user notes/tags
+Export
+id, user_id, list_id, format, file_url, created_at, download_count
+Generated export files
+Subscription
+id, user_id, plan, credits_per_month, stripe_subscription_id, current_period_end
+Billing and plan management
+7.2 Lead Status State Machine
+Each Lead progresses through the following states:
+LEAD LIFECYCLE
+QUEUED  â†’  SCRAPING  â†’  SCRAPED  â†’  ENRICHING  â†’  ENRICHED  â†’  SCORED
+                                          â†˜  ENRICHMENT_FAILED (no website or crawl blocked)
+Each state transition is logged with a timestamp. Users see real-time status via WebSocket push. Failed enrichments still show as valid leads with base Maps data.
+8. User Stories & Key Use Cases
+8.1 Core User Stories
+User Story
+Acceptance Criteria
+As a sales rep, I want to search for all dental clinics in Miami with 4+ stars so I can build a call list for this week.
+Search returns all matching clinics with phone numbers. I can filter by rating. I can export to CSV in one click.
+As a marketing agency, I want to see a heatmap of my client's competitors across Chicago so I can identify under-served neighborhoods to target.
+Map view shows competitor density heatmap. Clicking any area shows business count. Under-served zones are highlighted.
+As a SaaS founder, I want to find all restaurants in New York City that are using Square (tech stack) and have a website, so I can pitch them my payments integration.
+Tech stack filter is available post-enrichment. I can filter by 'Square detected = true' and export emails only.
+As a small business owner, I want to see how my plumbing company compares to competitors in my city in terms of ratings and review count.
+Competitor panel shows average rating, review count distribution, and my position relative to competitors.
+As a researcher, I want to extract 5,000 coffee shops across the state of California and download the full dataset with coordinates for a mapping study.
+Grid search handles state-level area. Full export with lat/lng fields. JSON export available for researchers.
+As a recruiter, I want to find all staffing agencies in Dallas with a website so I can reach out about a partnership.
+'has website = true' filter available. Email enrichment runs automatically. I can export with emails.
+9. Subscription & Pricing Model
+9.1 Plan Tiers
+Feature
+Free
+Starter
+Pro
+Business
+Price / month
+$0
+$29
+$59
+$99
+Credits / month
+100
+1,000
+5,000
+20,000
+1 credit =
+1 lead
+1 lead
+1 lead
+1 lead
+Enrichment
+No
+Basic (email only)
+Full AI
+Full AI
+Lead Scoring
+No
+Yes
+Yes
+Yes
+Competitor Panel
+No
+Limited
+Full
+Full
+Saved Lists
+1 list
+10 lists
+Unlimited
+Unlimited
+Exports
+CSV only
+CSV + Excel
+All formats
+All + API
+API Access
+No
+No
+Yes
+Yes
+Webhooks
+No
+No
+Yes
+Yes
+Data Retention
+7 days
+30 days
+90 days
+1 year
+Support
+Community
+Email
+Priority
+Dedicated
+9.2 Credit System Logic
+1 credit = 1 extracted lead from Google Maps (base data). Enrichment does not cost additional credits in V1.
+Credits are consumed when a lead is successfully extracted and returned to the user's results panel.
+If a search returns 0 results due to a scraping error, no credits are charged.
+Credits roll over for 30 days from the billing date (not calendar month) to avoid end-of-month rush.
+Users can purchase top-up credit packs at $5 per 500 credits without upgrading their plan.
+10. Implementation Roadmap
+10.1 Phased Development Plan
+Phase
+Timeline
+Name
+Deliverables
+0
+Weeks 1â€“2
+Foundation
+Project setup, monorepo, CI/CD pipeline, database schema, auth, Stripe integration, design system
+1
+Weeks 3â€“6
+Core MVP
+Scraping engine (Playwright + proxy), basic Grid Search, results table, map view, CSV export, Free + Starter plans
+2
+Weeks 7â€“10
+Enrichment
+Email + social enrichment pipeline, tech stack detection, lead scoring algorithm, WebSocket streaming, Excel export
+3
+Weeks 11â€“14
+Intelligence
+Competitor panel, density heatmap, market gap detection, saved lists, tags/notes, API access for Pro tier
+4
+Weeks 15â€“18
+Growth
+Webhook/Zapier integration, Benchmark PDF report, referral system, usage analytics dashboard, performance optimisation
+5
+Weeks 19â€“24
+Scale
+Agency/team accounts, CRM integrations (HubSpot, Pipedrive), white-label option, mobile-responsive polish, Series A readiness
+10.2 Technical Risks & Mitigations
+Risk
+Severity
+Mitigation Strategy
+Google changes Maps UI / selectors
+High
+Abstract all CSS selectors into a config file. Monitor scraping success rate. Implement fallback XPath selectors. Consider Apify actor as backup data source.
+IP blocks / rate limiting by Google
+High
+Mandatory residential proxy rotation (Bright Data). Per-worker rate limiting. CAPTCHA service integration. Do not exceed 1 request per 3 seconds per proxy.
+Places API cost overrun
+Medium
+Places API is only used as a fallback (not primary). All primary extraction via scraper. Places API usage metered and alerted at $50/month threshold.
+GDPR compliance violations
+High
+Only store business data, not personal data. Individual emails stored with explicit opt-out mechanism. Legal review before EU launch. GDPR-compliant Data Processing Agreement (DPA) template for B2B users.
+Scraping engine maintenance overhead
+Medium
+Use Apify's maintained Google Maps actor as a hybrid fallback. Allocate 20% of dev time for scraper maintenance in ongoing sprints.
+Scaling costs at volume
+Medium
+Scraping workers run on spot/preemptible instances to reduce cost. Redis queue prevents cascading failures. Load test at 10x expected volume before launch.
+11. API Specification (V1)
+11.1 Authentication
+All API requests must include an Authorization header: Authorization: Bearer <api_key>. API keys are generated per user from the dashboard and can be rotated.
+11.2 Core Endpoints
+Endpoint
+Description
+POST /api/v1/search
+Initiate a new scrape job. Body: { query, location, filters, limit }. Returns: { job_id, estimated_duration }
+GET /api/v1/jobs/:id
+Poll a scrape job status. Returns: { status, progress, leads_found, leads_enriched }
+GET /api/v1/jobs/:id/results
+Retrieve paginated results for a completed job. Params: page, limit, sort_by, filters
+GET /api/v1/leads/:id
+Get full detail for a single lead including enrichment data.
+GET /api/v1/lists
+List all saved lead lists for the authenticated user.
+POST /api/v1/lists
+Create a new lead list. Body: { name, description }
+POST /api/v1/lists/:id/leads
+Add lead(s) to a list. Body: { lead_ids: [] }
+GET /api/v1/lists/:id/export
+Generate and return a download URL for CSV/Excel/JSON export of a list. Params: format
+GET /api/v1/usage
+Return current credit usage, plan tier, and billing period data.
+POST /api/v1/webhooks
+Register a webhook URL for job completion events. Body: { url, events: [] }
+12. Success Metrics & KPIs
+12.1 Product KPIs
+Metric
+Target (Month 6 post-launch)
+Monthly Active Users (MAU)
+2,000+
+Paying Customers
+300+
+Monthly Recurring Revenue (MRR)
+$15,000+
+Leads Extracted per Month
+500,000+
+Average Session Duration
+> 12 minutes
+Time to First Lead (new user)
+< 60 seconds
+Enrichment Success Rate
+> 65% (email found)
+Scraping Success Rate
+> 95% (job completes without error)
+Churn Rate (monthly)
+< 5%
+NPS Score
+> 45
+Free-to-Paid Conversion Rate
+> 8%
+Customer Acquisition Cost (CAC)
+< $80
+13. Appendix
+13.1 Recommended Third-Party Services
+Category
+Recommended Service
+Alternative
+Residential Proxies
+Bright Data (industry standard)
+Oxylabs, Smartproxy
+Headless Browser
+Playwright (Microsoft)
+Puppeteer, Selenium
+CAPTCHA Solving
+2Captcha ($1 per 1,000 CAPTCHAs)
+Anti-Captcha, CapSolver
+Maps Visualization
+Mapbox GL JS (free tier: 50K loads/mo)
+Leaflet.js + OpenStreetMap (free)
+Authentication
+Clerk (best DX)
+Supabase Auth, Auth0
+Payments
+Stripe (industry standard)
+Paddle (better for EU VAT)
+Database
+Supabase (PostgreSQL + real-time + auth)
+PlanetScale, Neon
+Job Queue
+BullMQ + Redis (Upstash for managed Redis)
+Celery + Redis (Python)
+Frontend Deployment
+Vercel
+Netlify, Cloudflare Pages
+Backend Deployment
+Railway (simplest) or Fly.io (more control)
+AWS ECS, Render
+Email Sending
+Resend (developer-friendly)
+Postmark, SendGrid
+Error Monitoring
+Sentry
+Datadog
+Analytics
+PostHog (open source, self-hostable)
+Mixpanel, Amplitude
+13.2 Industry Taxonomy (Top-Level Categories)
+The following 12 industry categories each have 8â€“12 sub-niches in the full taxonomy (100+ total niches):
+Industry
+Example Niches
+Healthcare & Medical
+Dentists, Physiotherapists, Chiropractors, GP Clinics, Optometrists, Veterinarians, Pharmacies
+Food & Beverage
+Restaurants, Coffee Shops, Bakeries, Food Trucks, Catering Companies, Bars, Fast Food
+Trades & Home Services
+Plumbers, Electricians, HVAC, Roofers, Landscapers, Cleaners, Painters, General Contractors
+Retail
+Clothing Stores, Electronics, Furniture, Bookstores, Pet Shops, Florists, Hardware
+Legal & Financial
+Law Firms, Accountants, Financial Advisors, Mortgage Brokers, Insurance Agents, Tax Services
+Beauty & Wellness
+Hair Salons, Nail Salons, Spas, Gyms, Yoga Studios, Personal Trainers, Barbers
+Education & Tutoring
+Private Schools, Tutors, Music Schools, Driving Schools, Language Schools, Daycares
+Real Estate
+Estate Agents, Property Management, Commercial Realtors, Storage Facilities
+Automotive
+Car Dealerships, Auto Repair, MOT Centers, Car Wash, Tyre Shops, Body Shops
+Technology & IT
+IT Support, Web Agencies, App Developers, CCTV Installation, Computer Repair
+Events & Hospitality
+Hotels, Event Venues, Wedding Photographers, DJs, Catering, Party Planners
+Professional Services
+Marketing Agencies, PR Firms, HR Consultants, Management Consultants, Architects
+13.3 References
+HiQ Labs v. LinkedIn, 938 F.3d 985 (9th Cir. 2019) â€” Legal basis for public data scraping
+Mordor Intelligence: Web Scraping Market Report, 2025 â€” Industry size $1.03B, projected $2B by 2030
+BrightLocal Consumer Review Survey, 2026 â€” 88% of consumers use Google Maps for local business discovery
+Google Maps Platform Pricing â€” $17â€“$35 per 1,000 requests (Places API, 2026)
+GDPR Article 6(1)(f) â€” Legitimate interest basis for B2B data processing
+CAN-SPAM Act (15 U.S.C. 7701) â€” US email marketing compliance requirements
+Outscraper Pricing Benchmark, March 2026 â€” $30 per 10,000 leads vs $300â€“700 via Places API
+â€” End of Document â€”
+LeadMap Pro SRS v1.0 | April 2026 | Confidential

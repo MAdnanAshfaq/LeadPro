@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String      @id @default(cuid())
+  email             String      @unique
+  passwordHash      String?
+  name              String?
+  planTier          String      @default("free")
+  creditsRemaining  Int         @default(100)
+  createdAt         DateTime    @default(now())
+  jobs              SearchJob[]
+}
+
+model SearchJob {
+  id              String    @id @default(cuid())
+  userId          String
+  query           String
+  location        String
+  status          String    @default("queued")
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  user            User      @relation(fields: [userId], references: [id])
+  leads           Lead[]
+}
+
+model Lead {
+  id              String    @id @default(cuid())
+  searchJobId     String
+  googlePlaceId   String?
+  name            String
+  address         String?
+  phone           String?
+  website         String?
+  rating          Float?
+  reviewCount     Int?
+  category        String?
+  lat             Float?
+  lng             Float?
+  email           String?
+  socialLinks     Json?
+  leadScore       Int?
+  createdAt       DateTime  @default(now())
+  searchJob       SearchJob @relation(fields: [searchJobId], references: [id])
+}
