@@ -99,32 +99,73 @@ export default function DetailPanel({ lead, onClose }: DetailPanelProps) {
           </div>
 
           {/* Decision Makers Section */}
-          {lead.contacts && lead.contacts.length > 0 && (
-            <div className="mt-8 pt-8 border-t border-zinc-100">
-              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4">Decision Makers Identified</div>
-              <div className="space-y-3">
-                {lead.contacts.map((contact: any, i: number) => (
-                  <div key={i} className="bg-zinc-50 rounded-xl p-4 border border-zinc-100">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="font-bold text-zinc-900">{contact.name}</div>
-                        <div className="text-xs text-zinc-500">{contact.title}</div>
-                      </div>
-                      <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-tight">
-                        {contact.status || 'Verified'}
-                      </span>
-                    </div>
-                    {contact.email && (
-                      <div className="flex items-center gap-2 text-sm text-indigo-600 hover:underline cursor-pointer">
-                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                         {contact.email}
-                      </div>
-                    )}
-                  </div>
-                ))}
+          <div className="mt-8 pt-8 border-t border-zinc-100">
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex justify-between">
+                <span>Decision Makers Identified</span>
+                {!lead.contacts?.length && <span className="animate-pulse text-indigo-500">Searching...</span>}
               </div>
+              
+              {lead.contacts && lead.contacts.length > 0 ? (
+                <div className="space-y-3">
+                  {lead.contacts.map((contact: any, i: number) => (
+                    <div key={i} className="bg-zinc-50 rounded-xl p-4 border border-zinc-100">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-bold text-zinc-900">{contact.name}</div>
+                          <div className="text-xs text-zinc-500">{contact.title}</div>
+                        </div>
+                        <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-tight">
+                          {contact.status || 'Verified'}
+                        </span>
+                      </div>
+                      {contact.email && (
+                        <div className="flex items-center gap-2 text-sm text-indigo-600 hover:underline cursor-pointer">
+                           <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                           {contact.email}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-zinc-400 italic bg-zinc-50 p-4 rounded-xl border border-zinc-100 border-dashed">
+                  No decision makers identified yet. Scouring LinkedIn and web signatures...
+                </div>
+              )}
             </div>
-          )}
+
+          {/* Social Media & Extra Emails */}
+          <div className="mt-8 pt-8 border-t border-zinc-100">
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex justify-between">
+                <span>Web Intelligence</span>
+                {!lead.socials && <span className="animate-pulse text-indigo-500">Crawling Site...</span>}
+              </div>
+              
+              {lead.socials && Object.keys(lead.socials).length > 0 ? (
+                <div className="flex gap-2 mb-4">
+                  {Object.entries(lead.socials).map(([platform, url]: any) => (
+                    <a key={platform} href={url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-600 hover:bg-indigo-600 hover:text-white transition-all">
+                      <span className="text-[10px] font-bold uppercase">{platform[0]}</span>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-2 mb-4">
+                   {[1,2,3,4].map(i => <div key={i} className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-100 border-dashed" />)}
+                </div>
+              )}
+
+              {lead.emails && lead.emails.length > 1 && (
+                <div className="space-y-2">
+                  <div className="text-[10px] text-zinc-400 font-bold uppercase">Alternative Emails</div>
+                  {lead.emails.slice(1).map((email: string, i: number) => (
+                    <div key={i} className="text-xs text-zinc-600 truncate bg-zinc-50 px-2 py-1 rounded border border-zinc-100">
+                      {email}
+                    </div>
+                  ))}
+                </div>
+              )}
+           </div>
 
           <div className="mt-8 pt-8 border-t border-zinc-100">
             <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4">Lead Intelligence Score</div>
