@@ -22,6 +22,15 @@ app.use(express.json());
 // Setup Queue Events for WebSockets
 setupQueueEvents(io);
 
+app.get('/', (req, res) => {
+  res.json({ 
+    name: 'LeadMap Pro Intelligence API', 
+    version: '1.0.0', 
+    status: 'online',
+    endpoints: ['/health', '/api/v1/search']
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'LeadMap API is running' });
 });
