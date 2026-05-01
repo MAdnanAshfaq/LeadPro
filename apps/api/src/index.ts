@@ -57,6 +57,7 @@ app.post('/api/v1/search', async (req, res) => {
       try {
         const lines = scraperOutput.trim().split('\n');
         const lastLine = lines[lines.length - 1];
+        if (!lastLine) throw new Error("No output from scraper");
         const leads = JSON.parse(lastLine);
 
         // 2. Enrich each lead
