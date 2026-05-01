@@ -6,7 +6,7 @@ from playwright.async_api import async_playwright
 from playwright_stealth import Stealth
 
 async def run_scrape(query: str, location: str):
-    print(f"Starting Industrial Deep Scrape: {query} in {location}")
+    print(f"Starting Elite Deep Scrape: {query} in {location}")
     results = []
     
     async with async_playwright() as p:
@@ -24,63 +24,48 @@ async def run_scrape(query: str, location: str):
         url = f"https://www.google.com/maps/search/{urllib.parse.quote(search_query)}"
         
         await page.goto(url)
-        # Increased initial wait for regional resolution
         await page.wait_for_timeout(6000) 
         
         try:
-            # 1. Broad Scanning with Infinite Scroll
-            print("Broad Scanning (Infinite Scroll)...")
-            feed_selector = 'div[role="feed"]'
-            try:
-                await page.wait_for_selector(feed_selector, timeout=10000)
-                for _ in range(15): 
-                    await page.evaluate(f'''
-                        const feed = document.querySelector('{feed_selector}');
-                        if (feed) {{
-                            feed.scrollTo(0, feed.scrollHeight);
-                        }}
-                    ''')
-                    await page.wait_for_timeout(1500)
-            except:
-                print("Feed selector not found, falling back to mouse wheel.")
-                for _ in range(10):
-                    await page.mouse.wheel(0, 5000)
-                    await page.wait_for_timeout(1000)
+            # 1. Broad Scanning with Javascript-Direct Scrolling
+            print("Infinite Scrolling for Depth...")
+            for _ in range(15): 
+                await page.evaluate('''
+                    const scrollable = document.querySelector('div[role="feed"]');
+                    if (scrollable) {
+                        scrollable.scrollTop = scrollable.scrollHeight;
+                    } else {
+                        window.scrollBy(0, 5000);
+                    }
+                ''')
+                await page.wait_for_timeout(1500)
                 
-            items = await page.query_selector_all('div[role="article"]')
-            print(f"Discovered {len(items)} leads. Starting Deep Intel Extraction...")
+            # 2. Identify Result Links (The hfpxzc class is the Google Maps standard)
+            links = await page.query_selector_all('a.hfpxzc')
+            if not links:
+                links = await page.query_selector_all('div[role="article"] a')
             
-            for i, item in enumerate(items[:60]): # Target top 60
+            print(f"Discovered {len(links)} candidate leads. Starting Deep Extraction...")
+            
+            for i, link in enumerate(links[:50]):
                 try:
-                    # Basic extraction from the card (Fallback)
-                    name = await item.get_attribute('aria-label')
+                    name = await link.get_attribute('aria-label')
                     if not name: continue
                     
-                    # Try to get phone/website from card text first
-                    card_text = await item.inner_text()
-                    website = ""
-                    phone = ""
-                    
-                    # Card-level website check
-                    website_btn = await item.query_selector('a[aria-label*="Website"]')
-                    if website_btn:
-                        website = await website_btn.get_attribute('href')
-
-                    # 2. Deep Click for Full Profile
-                    await item.scroll_into_view_if_needed()
-                    # Click precisely on the title or card body
-                    await item.click(force=True, timeout=5000)
-                    await page.wait_for_timeout(2500) # Crucial: Let profile load
+                    # Click the link directly to open the profile
+                    await link.scroll_into_view_if_needed()
+                    await link.click(force=True)
+                    await page.wait_for_timeout(3000) # Give it 3 full seconds to load profile
                     
                     # High-fidelity extraction from the side panel
-                    # Website (Source of Truth)
+                    # Website
+                    website = ""
                     website_el = await page.query_selector('a[data-item-id="authority"]')
-                    if not website_el:
-                        website_el = await page.query_selector('a[aria-label^="Website:"]')
                     if website_el:
                         website = await website_el.get_attribute('href')
                     
-                    # Phone (Source of Truth)
+                    # Phone
+                    phone = ""
                     phone_el = await page.query_selector('button[data-item-id^="phone:tel:"]')
                     if phone_el:
                         phone = await phone_el.get_attribute('aria-label')
@@ -93,16 +78,21 @@ async def run_scrape(query: str, location: str):
                         address = await address_el.get_attribute('aria-label')
                         address = address.replace('Address: ', '').strip() if address else ""
 
+                    # Rating / Reviews (Robust multi-selector)
                     rating = 0.0
                     reviews = 0
+                    
+                    # Method 1: The F7nice div
                     stats_el = await page.query_selector('div.F7nice')
                     if stats_el:
-                        stats_text = await stats_el.inner_text()
-                        match = re.search(r'(\d[\.,]\d)\s*\(([\d,\.]+)\)', stats_text)
-                        if match:
-                            rating = float(match.group(1).replace(',', '.'))
-                            reviews = int(match.group(2).replace(',', '').replace('.', ''))
+                        text = await stats_el.inner_text()
+                        # Match something like "4.5 (123)"
+                        r_match = re.search(r'(\d[\.,]\d)', text)
+                        rv_match = re.search(r'\(([\d,\.]+)\)', text)
+                        if r_match: rating = float(r_match.group(1).replace(',', '.'))
+                        if rv_match: reviews = int(rv_match.group(1).replace(',', '').replace('.', ''))
 
+                    # Category
                     cat = "Local Business"
                     cat_el = await page.query_selector('button[jsaction*="category"]')
                     if cat_el:
@@ -119,21 +109,21 @@ async def run_scrape(query: str, location: str):
                         "reviews": reviews,
                         "phone": phone,
                         "website": website,
-                        "lat": 0.0, # Will be set by API or if needed
+                        "lat": 0.0,
                         "lng": 0.0,
                         "status": "open",
                         "score": 0
                     })
                     print(f"Scraped {i+1}: {name} | Phone: {phone or 'N/A'} | Web: {'Yes' if website else 'No'}")
                 except Exception as ex:
-                    print(f"Item extraction failed: {ex}")
+                    print(f"Item {i} failed: {ex}")
                     continue
 
         except Exception as e:
-            print(f"Critical Scrape Error: {e}")
+            print(f"Global Scrape Error: {e}")
             
         await browser.close()
-        
+    
     return results
 
 if __name__ == "__main__":
