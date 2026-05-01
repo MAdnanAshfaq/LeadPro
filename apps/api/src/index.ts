@@ -28,7 +28,7 @@ app.get('/health', (req, res) => {
 
 app.post('/api/v1/search', async (req, res) => {
   try {
-    const { query, location, filters } = req.body;
+    const { query, location, targetTitle, filters } = req.body;
     
     if (!query || !location) {
       return res.status(400).json({ error: 'Query and location are required' });
@@ -37,6 +37,7 @@ app.post('/api/v1/search', async (req, res) => {
     const job = await scrapeQueue.add('scrape', {
       query,
       location,
+      targetTitle: targetTitle || 'Owner',
       filters
     });
 

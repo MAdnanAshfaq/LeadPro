@@ -22,19 +22,52 @@ export const setupQueueEvents = (io: any) => {
     
     // Apply score to each result
     const resultsArray = (Array.isArray(returnvalue) ? returnvalue : []) as any[];
-    const scoredResults = resultsArray.map((lead: any) => {
-      const scoreData = calculateLeadScore({
-        name: lead.name,
-        rating: lead.rating,
-        reviewCount: lead.reviews,
-        website: lead.website,
-        email: lead.email,
-        phone: lead.phone
-      });
-      return { ...lead, score: scoreData.score };
-    });
+    
+    // Perform enrichment on each lead with a website
+    const enrichAndScore = async () => {
+      const targetTitle = (scrapeQueue as any)._targetTitle || "Owner";
+      const path = require('path');
+      const enricherPath = path.resolve(__dirname, '../../../../enricher/enricher.py');
 
-    io.emit('job-completed', { jobId, result: scoredResults });
+      const finalLeads = await Promise.all(resultsArray.map(async (lead: any) => {
+        let enrichedData: any = { contacts: [] };
+        try {
+          // Spawn enricher script
+          const { spawnSync } = require('child_process');
+          const input = JSON.stringify({ ...lead, targetTitle });
+          const result = spawnSync('python', [enricherPath], { input });
+          
+          if (result.stdout) {
+            const output = result.stdout.toString().trim();
+            if (output) {
+              enrichedData = JSON.parse(output) || { contacts: [] };
+            }
+          }
+        } catch (e) {
+          console.error("Enrichment spawn failed", e);
+        }
+
+        const mergedLead = { ...lead, ...enrichedData };
+        if (mergedLead.contacts && mergedLead.contacts.length > 0 && mergedLead.contacts[0].email) {
+          mergedLead.email = mergedLead.contacts[0].email;
+        }
+
+        const scoreData = calculateLeadScore({
+          name: mergedLead.name,
+          rating: mergedLead.rating,
+          reviewCount: mergedLead.reviews,
+          website: mergedLead.website,
+          email: mergedLead.email,
+          phone: mergedLead.phone
+        });
+
+        return { ...mergedLead, score: scoreData.score };
+      }));
+
+      io.emit('job-completed', { jobId, result: finalLeads });
+    };
+
+    enrichAndScore();
   });
 
   scrapeQueueEvents.on('failed', ({ jobId, failedReason }) => {

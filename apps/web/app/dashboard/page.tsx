@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [leads, setLeads] = useState<any[]>([]);
   const [query, setQuery] = useState("Plumbers");
   const [location, setLocation] = useState("Miami");
+  const [targetTitle, setTargetTitle] = useState("Owner");
   const [radius, setRadius] = useState("25 km radius");
   const [isScraping, setIsScraping] = useState(false);
   const [currentTab, setCurrentTab] = useState("leads");
@@ -32,11 +33,6 @@ export default function Dashboard() {
           const newLeads = data.result.filter((l: any) => !existingNames.has(l.name));
           return [...prev, ...newLeads];
         });
-        
-        if (data.result.length > 0 && data.result[0].lat && data.result[0].lng) {
-          // We don't necessarily want to force re-centering on every auto-search result 
-          // because it might fight with the user's manual panning.
-        }
       }
       setIsScraping(false);
     });
@@ -46,14 +42,14 @@ export default function Dashboard() {
     };
   }, []);
 
-  const triggerSearch = async (q: string, loc: string) => {
+  const triggerSearch = async (q: string, loc: string, title?: string) => {
     if (!q || !loc) return;
     setIsScraping(true);
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, location: loc, filters: {} }),
+        body: JSON.stringify({ query: q, location: loc, targetTitle: title || targetTitle, filters: {} }),
       });
     } catch (err) {
       console.error(err);
@@ -82,7 +78,7 @@ export default function Dashboard() {
       }
     }
 
-    triggerSearch(query, location);
+    triggerSearch(query, location, targetTitle);
   };
 
   const handleAutoSearch = (lat: number, lng: number) => {
@@ -94,17 +90,17 @@ export default function Dashboard() {
     
     lastAutoSearchCoords.current = [lat, lng];
     const locString = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    triggerSearch(query, locString);
+    triggerSearch(query, locString, targetTitle);
   };
 
   const filteredLeads = leads.filter(l => {
     if (currentTab === 'hot') return l.hot;
-    if (currentTab === 'enriched') return l.email;
+    if (currentTab === 'enriched') return l.email || (l.contacts && l.contacts.length > 0);
     return true;
   });
 
   const totalLeads = leads.length;
-  const totalEmails = leads.filter(l => l.email).length;
+  const totalEmails = leads.filter(l => l.email || (l.contacts && l.contacts.length > 0)).length;
   const totalPhones = leads.filter(l => l.phone).length;
   const avgRating = totalLeads ? (leads.reduce((a, l) => a + (l.rating || 0), 0) / totalLeads).toFixed(1) : "0.0";
 
@@ -113,14 +109,14 @@ export default function Dashboard() {
       {/* Top Header Row */}
       <div className="flex-shrink-0 h-16 border-b border-white/10 px-6 flex items-center justify-between z-10 bg-[#0a0a0a]">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-medium tracking-tight">LeadMap Pro</h2>
-          <span className="bg-indigo-500/10 text-indigo-400 text-xs font-medium px-3 py-1 rounded-full">{totalLeads} leads found</span>
+          <h2 className="text-xl font-medium tracking-tight">LeadMap Pro Intelligence</h2>
+          <span className="bg-indigo-500/10 text-indigo-400 text-xs font-medium px-3 py-1 rounded-full">{totalLeads} leads identified</span>
         </div>
         <div className="flex items-center gap-4">
            {isScraping && (
              <div className="flex items-center gap-2 text-xs text-indigo-400 animate-pulse">
                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></div>
-               Scanning Area...
+               Deep Scanning Personnel...
              </div>
            )}
            <div className="w-8 h-8 rounded-full bg-white/10"></div>
@@ -133,28 +129,42 @@ export default function Dashboard() {
         {/* Left Pane - Data & Controls */}
         <div className="w-1/2 flex flex-col border-r border-white/10 overflow-y-auto">
           <div className="p-6">
-            <form onSubmit={handleManualSearch} className="flex gap-2 mb-6">
-              <input 
-                type="text" 
-                placeholder="Industry (e.g. Plumbers)" 
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <input 
-                type="text" 
-                placeholder="City or ZIP" 
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              />
-              <button 
-                type="submit" 
-                disabled={isScraping}
-                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-6 rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(79,70,229,0.3)]"
-              >
-                {isScraping ? "Searching..." : "Search ↗"}
-              </button>
+            <form onSubmit={handleManualSearch} className="space-y-3 mb-6">
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Industry (e.g. Plumbers)" 
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+                <input 
+                  type="text" 
+                  placeholder="City or ZIP" 
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1 relative group">
+                  <span className="absolute left-3 top-2.5 text-[10px] text-zinc-500 uppercase font-bold">Target Title</span>
+                  <input 
+                    type="text" 
+                    placeholder="Owner, CEO, Manager..." 
+                    className="w-full bg-white/5 border border-white/10 rounded-lg pl-[85px] pr-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                    value={targetTitle}
+                    onChange={(e) => setTargetTitle(e.target.value)}
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isScraping}
+                  className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-8 rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(79,70,229,0.3)]"
+                >
+                  {isScraping ? "Scraping..." : "Search Intelligence ↗"}
+                </button>
+              </div>
             </form>
 
             <div className="grid grid-cols-4 gap-3 mb-6">
