@@ -1,9 +1,12 @@
 import asyncio
+import re
+import time
+import urllib.parse
 from playwright.async_api import async_playwright
 from playwright_stealth import Stealth
 
 async def run_scrape(query: str, location: str):
-    print(f"Starting Playwright scrape for: {query} in {location}")
+    print(f"Starting Playwright Deep Scrape for: {query} in {location}")
     results = []
     
     async with async_playwright() as p:
@@ -14,88 +17,73 @@ async def run_scrape(query: str, location: str):
         )
         page = await context.new_page()
         
-        # Apply stealth to bypass bot detection
         stealth = Stealth()
         await stealth.apply_stealth_async(page)
         
         search_query = f"{query} in {location}"
-        url = f"https://www.google.com/maps/search/{search_query.replace(' ', '+')}"
+        url = f"https://www.google.com/maps/search/{urllib.parse.quote(search_query)}"
         
         await page.goto(url)
-        await page.wait_for_timeout(3000) # Give time to load
-        
-        # Grid Search Algorithm implementation would go here.
-        # For MVP, we extract the first few visible results.
+        await page.wait_for_timeout(5000) 
         
         try:
-            # Look for the feed container
-            feed = await page.wait_for_selector('div[role="feed"]', timeout=10000)
-            
-            # Simple scroll loop to load more items
-            for _ in range(3):
-                await page.mouse.wheel(0, 5000)
-                await page.wait_for_timeout(2000)
+            # Scroll aggressively to load up to 40-50 leads
+            print("Infinite scrolling for broad coverage...")
+            for _ in range(12): 
+                await page.mouse.wheel(0, 10000)
+                await page.wait_for_timeout(1000)
+                if await page.query_selector('text="You\'ve reached the end of the list"'):
+                    break
                 
-            # Extract data by clicking each item for deep info
             items = await page.query_selector_all('div[role="article"]')
-            for i, item in enumerate(items):
+            print(f"Found {len(items)} candidates. Starting Deep Extraction on top 40...")
+            
+            for i, item in enumerate(items[:40]):
                 try:
-                    # Click to open detail panel
-                    await item.click()
-                    await page.wait_for_timeout(2000) # Wait for panel to load
+                    await item.scroll_into_view_if_needed()
+                    await item.click(force=True)
+                    await page.wait_for_timeout(2000) # Deep extraction requires panel load time
                     
                     name = await item.get_attribute('aria-label')
-                    if not name:
-                        continue
+                    if not name: continue
                     
-                    # Extract detailed data from the now-open detail panel
-                    # Website
+                    # High-precision selectors for the Google Maps Profile Panel
                     website = ""
                     website_el = await page.query_selector('a[data-item-id="authority"]')
                     if not website_el:
                         website_el = await page.query_selector('a[aria-label^="Website:"]')
-                    
                     if website_el:
                         website = await website_el.get_attribute('href')
                     
-                    # Phone
                     phone = ""
                     phone_el = await page.query_selector('button[data-item-id^="phone:tel:"]')
                     if phone_el:
-                        phone_text = await phone_el.get_attribute('aria-label')
-                        if phone_text:
-                            phone = phone_text.replace('Phone: ', '')
+                        phone = await phone_el.get_attribute('aria-label')
+                        phone = phone.replace('Phone: ', '').strip() if phone else ""
                     
-                    # Address
                     address = ""
                     address_el = await page.query_selector('button[data-item-id="address"]')
                     if address_el:
                         address = await address_el.get_attribute('aria-label')
-                        if address:
-                            address = address.replace('Address: ', '')
-                    
-                    # Rating/Reviews
+                        address = address.replace('Address: ', '').strip() if address else ""
+
                     rating = 0.0
                     reviews = 0
-                    rating_el = await page.query_selector('div.F7nice span[aria-hidden="true"]')
-                    if rating_el:
-                        rating_text = await rating_el.inner_text()
-                        rating = float(rating_text.replace(',', '.'))
-                    
-                    reviews_el = await page.query_selector('div.F7nice span[aria-label*="reviews"]')
-                    if reviews_el:
-                        reviews_text = await reviews_el.get_attribute('aria-label')
-                        reviews_match = re.search(r'([\d,]+)', reviews_text)
-                        if reviews_match:
-                            reviews = int(reviews_match.group(1).replace(',', ''))
-                    
-                    # Category
+                    stats_el = await page.query_selector('div.F7nice')
+                    if stats_el:
+                        stats_text = await stats_el.inner_text()
+                        match = re.search(r'(\d[\.,]\d)\s*\(([\d,\.]+)\)', stats_text)
+                        if match:
+                            rating = float(match.group(1).replace(',', '.'))
+                            reviews = int(match.group(2).replace(',', '').replace('.', ''))
+
                     cat = "Local Business"
-                    cat_el = await page.query_selector('button[data-item-id="address"] + div button') # Heuristic
+                    cat_el = await page.query_selector('button[jsaction*="category"]')
+                    if not cat_el:
+                        cat_el = await page.query_selector('button[data-item-id="address"] + div button')
                     if cat_el:
                         cat = await cat_el.inner_text()
 
-                    # Lat/Lng (from URL)
                     lat, lng = 0.0, 0.0
                     curr_url = page.url
                     coord_match = re.search(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)', curr_url)
@@ -104,6 +92,7 @@ async def run_scrape(query: str, location: str):
                         lng = float(coord_match.group(2))
 
                     results.append({
+                        "id": f"lead_{i}_{int(time.time())}",
                         "name": name,
                         "location": location,
                         "cat": cat,
@@ -118,21 +107,18 @@ async def run_scrape(query: str, location: str):
                         "status": "open",
                         "score": 0
                     })
-                    
-                    # Close panel if needed or just click next
-                    print(f"Deep-scraped: {name}")
+                    print(f"Scraped {i+1}/40: {name} (Web: {'Yes' if website else 'No'})")
                 except Exception as ex:
-                    print(f"Error deep-scraping item {i}: {ex}")
+                    print(f"Error scraping item {i}: {ex}")
                     continue
 
         except Exception as e:
-            print(f"Error during extraction: {e}")
+            print(f"Global extraction error: {e}")
             
         await browser.close()
         
-    print(f"Extracted {len(results)} leads.")
+    print(f"Extracted {len(results)} high-quality leads.")
     return results
 
 if __name__ == "__main__":
-    # Test locally
     asyncio.run(run_scrape("plumbers", "Miami"))

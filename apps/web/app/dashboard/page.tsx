@@ -57,10 +57,13 @@ export default function Dashboard() {
     }
   };
 
+  const [hasSearched, setHasSearched] = useState(false);
+
   const handleManualSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLeads([]);
+    setLeads([]); // Clear everything for a fresh search
     setOpenLead(null);
+    setHasSearched(true);
     
     // Geocode the location string to move the map
     if (location) {
@@ -82,10 +85,11 @@ export default function Dashboard() {
   };
 
   const handleAutoSearch = (lat: number, lng: number) => {
-    // Prevent infinite loops or redundant searches if moved very slightly
+    if (!hasSearched || isScraping) return; // Only auto-scan AFTER the first manual search
+
     if (lastAutoSearchCoords.current) {
       const dist = Math.sqrt(Math.pow(lat - lastAutoSearchCoords.current[0], 2) + Math.pow(lng - lastAutoSearchCoords.current[1], 2));
-      if (dist < 0.005) return; // approx 500m
+      if (dist < 0.01) return; // increase threshold slightly to prevent jitter
     }
     
     lastAutoSearchCoords.current = [lat, lng];
