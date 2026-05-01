@@ -107,5 +107,15 @@ async def run_scrape(query: str, location: str):
     print(f"Grid Search completed. Found {len(unique_results)} unique leads.")
     return unique_results
 
+import sys
+import json
+
 if __name__ == "__main__":
-    asyncio.run(run_scrape("food spots", "New Jersey"))
+    if len(sys.argv) < 3:
+        # Default for testing
+        asyncio.run(run_scrape("food spots", "New Jersey"))
+    else:
+        query = sys.argv[1]
+        location = sys.argv[2]
+        leads = asyncio.run(run_scrape(query, location))
+        print(json.dumps(leads))

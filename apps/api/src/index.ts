@@ -34,14 +34,56 @@ app.post('/api/v1/search', async (req, res) => {
       return res.status(400).json({ error: 'Query and location are required' });
     }
 
-    const job = await scrapeQueue.add('scrape', {
-      query,
-      location,
-      targetTitle: targetTitle || 'Owner',
-      filters
+    const jobId = `job_${Date.now()}`;
+    res.json({ jobId, status: 'processing' });
+
+    // Execute Scraper Directly (Bypassing BullMQ/Redis for local reliability)
+    const { spawn } = require('child_process');
+    const path = require('path');
+    const scraperPath = path.resolve(__dirname, '../../scraper/scraper.py');
+    const enricherPath = path.resolve(__dirname, '../../enricher/enricher.py');
+
+    console.log(`Starting direct scrape for ${query} in ${location}...`);
+    
+    // 1. Run Scraper
+    const python = spawn('python', [scraperPath, query, location]);
+    let scraperOutput = '';
+    
+    python.stdout.on('data', (data: any) => {
+      scraperOutput += data.toString();
     });
 
-    res.json({ jobId: job.id, status: 'queued' });
+    python.on('close', async (code: number) => {
+      try {
+        const lines = scraperOutput.trim().split('\n');
+        const lastLine = lines[lines.length - 1];
+        const leads = JSON.parse(lastLine);
+
+        // 2. Enrich each lead
+        const finalLeads = await Promise.all(leads.map(async (lead: any) => {
+          return new Promise((resolve) => {
+            const enricher = spawn('python', [enricherPath]);
+            const input = JSON.stringify({ ...lead, targetTitle });
+            enricher.stdin.write(input);
+            enricher.stdin.end();
+
+            let enricherOutput = '';
+            enricher.stdout.on('data', (d: any) => { enricherOutput += d.toString(); });
+            enricher.on('close', () => {
+              try {
+                const enriched = JSON.parse(enricherOutput.trim());
+                resolve({ ...lead, ...enriched });
+              } catch { resolve(lead); }
+            });
+          });
+        }));
+
+        io.emit('job-completed', { jobId, result: finalLeads });
+      } catch (err) {
+        console.error("Scraper parsing failed", err);
+      }
+    });
+
   } catch (error) {
     console.error('Error creating search job:', error);
     res.status(500).json({ error: 'Internal server error' });

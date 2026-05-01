@@ -5,44 +5,50 @@ import re
 import urllib.parse
 from playwright.async_api import async_playwright
 
-async def discover_and_scrape(page, base_url):
+async def spider_style_scrape(page, url):
+    """
+    Implements the Spider-rs 'Link Gathering then Deep Scrape' strategy.
+    1. Scan homepage for immediate contacts.
+    2. Identify high-value sub-pages (Contact, About, Team).
+    3. Concurrently crawl sub-pages for hidden emails.
+    """
     emails = set()
     socials = {}
     
     try:
-        await page.goto(base_url, wait_until="domcontentloaded", timeout=15000)
-        
-        # 1. Scrape Homepage
+        await page.goto(url, wait_until="domcontentloaded", timeout=15000)
         content = await page.content()
         
-        # Email Regex (Firecrawl style persistence)
-        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-        found = re.findall(email_pattern, content)
-        junk = ['sentry.io', 'wix.com', 'example.com', 'domain.com', '.png', '.jpg', 'svg', 'github', 'google']
+        # Email & Social Extraction
+        pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        found = re.findall(pattern, content)
+        junk = ['sentry.io', 'wix.com', 'example.com', 'domain.com', 'google', 'github']
         for e in found:
             if not any(j in e.lower() for j in junk):
                 emails.add(e.lower())
         
-        # Socials
         for plat in ['facebook', 'instagram', 'linkedin', 'twitter']:
             match = re.search(f'{plat}\.com/[a-zA-Z0-9._%-]+', content)
             if match: socials[plat] = f"https://{match.group(0)}"
             
-        # 2. Find "Contact" or "About" pages
+        # Link Gathering (Spider-rs strategy)
         links = await page.query_selector_all('a')
-        contact_pages = []
+        sub_pages = []
         for link in links:
             href = await link.get_attribute('href')
-            if href and any(x in href.lower() for x in ['contact', 'about', 'team', 'staff', 'owner', 'management']):
-                contact_pages.append(urllib.parse.urljoin(base_url, href))
+            if href:
+                href_low = href.lower()
+                if any(x in href_low for x in ['contact', 'about', 'team', 'staff', 'management', 'people', 'leadership']):
+                    full_url = urllib.parse.urljoin(url, href)
+                    if url in full_url: sub_pages.append(full_url)
         
-        # Crawl the best contact page found
-        for cp_url in list(set(contact_pages))[:2]:
+        # Crawl top 3 sub-pages sequentially (concurrency can be tricky with one page object)
+        for sp in list(set(sub_pages))[:3]:
             try:
-                await page.goto(cp_url, wait_until="domcontentloaded", timeout=10000)
-                cp_content = await page.content()
-                cp_found = re.findall(email_pattern, cp_content)
-                for e in cp_found:
+                await page.goto(sp, wait_until="domcontentloaded", timeout=10000)
+                sp_content = await page.content()
+                sp_found = re.findall(pattern, sp_content)
+                for e in sp_found:
                     if not any(j in e.lower() for j in junk):
                         emails.add(e.lower())
             except: continue
@@ -51,57 +57,70 @@ async def discover_and_scrape(page, base_url):
     except:
         return [], {}
 
+async def google_dork_mining(page, business_name, domain):
+    """
+    Uses Search Operators from the guides to find indexed emails.
+    """
+    found_emails = []
+    if not domain: return []
+    
+    # Scrapebox/Spider style dorking
+    query = f'"{domain}" contact email OR mailto OR "email us"'
+    try:
+        await page.goto(f"https://www.google.com/search?q={urllib.parse.quote(query)}")
+        await page.wait_for_timeout(2000)
+        content = await page.content()
+        # Look for domain-specific emails
+        pattern = r'[a-zA-Z0-9._%+-]+@' + re.escape(domain)
+        found_emails = re.findall(pattern, content)
+    except: pass
+    
+    return found_emails
+
 async def enrich_lead(website_url, business_name, target_title="Owner"):
     contacts = []
+    emails = []
+    socials = {}
     
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(user_agent="Mozilla/5.0")
+            context = await browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
             page = await context.new_page()
             
-            # Phase A: Google Dorking for Decision Makers
-            dork_query = f'site:linkedin.com/in "{business_name}" "{target_title}"'
+            # Phase 1: LinkedIn Personnel Discovery
             try:
-                await page.goto(f"https://www.google.com/search?q={urllib.parse.quote(dork_query)}")
+                l_query = f'site:linkedin.com/in "{business_name}" "{target_title}"'
+                await page.goto(f"https://www.google.com/search?q={urllib.parse.quote(l_query)}")
                 await page.wait_for_timeout(2000)
-                results = await page.query_selector_all('div.g')
-                for res in results[:2]:
-                    text = await res.inner_text()
+                res = await page.query_selector_all('div.g')
+                for r in res[:2]:
+                    text = await r.inner_text()
                     lines = text.split('\n')
-                    if len(lines) > 0:
-                        name_title = lines[0].split(' - ')[0].split(' | ')[0]
-                        contacts.append({"name": name_title, "title": target_title, "status": "LinkedIn Identified"})
+                    if lines:
+                        name = lines[0].split(' - ')[0].split(' | ')[0]
+                        contacts.append({"name": name, "title": target_title, "status": "LinkedIn Found"})
             except: pass
 
-            # Phase B: Deep Crawl for Emails & Socials (Firecrawl Style)
-            found_emails = []
-            socials = {}
+            # Phase 2: Spider-Style Website Crawl
             if website_url:
-                found_emails, socials = await discover_and_scrape(page, website_url)
+                emails, socials = await spider_style_scrape(page, website_url)
             
-            # Phase C: Google Pattern Mining (If no emails found yet)
-            if not found_emails and website_url:
+            # Phase 3: Dorking Fallback
+            if not emails and website_url:
                 domain = website_url.split('//')[-1].split('/')[0].replace('www.', '')
-                pattern_query = f'"{domain}" contact email OR mailto'
-                try:
-                    await page.goto(f"https://www.google.com/search?q={urllib.parse.quote(pattern_query)}")
-                    await page.wait_for_timeout(2000)
-                    p_content = await page.content()
-                    p_found = re.findall(r'[a-zA-Z0-9._%+-]+@' + re.escape(domain), p_content)
-                    found_emails.extend(p_found)
-                except: pass
-
+                emails = await google_dork_mining(page, business_name, domain)
+                
             await browser.close()
             
             # Final Merge
-            if found_emails and contacts:
-                contacts[0]["email"] = found_emails[0]
+            if emails and contacts:
+                contacts[0]["email"] = emails[0]
                 contacts[0]["status"] = "Verified"
-                
+            
             return {
                 "contacts": contacts,
-                "emails": list(set(found_emails)),
+                "emails": list(set(emails)),
                 "socials": socials
             }
             
