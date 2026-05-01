@@ -21,6 +21,7 @@ COPY . .
 
 # 4. Install Node dependencies and build
 RUN npm install
+RUN npx turbo run build --filter=web...
 RUN npx turbo run build --filter=api...
 
 # Environment Config

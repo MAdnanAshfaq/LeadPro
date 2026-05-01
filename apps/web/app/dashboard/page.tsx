@@ -23,7 +23,7 @@ export default function Dashboard() {
   const lastAutoSearchCoords = useRef<[number, number] | null>(null);
 
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
+    const socket = io(process.env.NEXT_PUBLIC_API_URL || "/");
 
     socket.on("job-completed", (data) => {
       if (data.result) {
@@ -46,7 +46,8 @@ export default function Dashboard() {
     if (!q || !loc) return;
     setIsScraping(true);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1/search`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      await fetch(`${baseUrl}/api/v1/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: q, location: loc, targetTitle: title || targetTitle, filters: {} }),

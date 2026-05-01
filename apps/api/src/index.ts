@@ -16,8 +16,20 @@ const io = new Server(httpServer, {
   }
 });
 
+const path = require('path');
 app.use(cors());
 app.use(express.json());
+
+// Serve Static Frontend
+const frontendPath = path.resolve(__dirname, '../../web/out');
+app.use(express.static(frontendPath));
+
+// Fallback for SPA (Single Page App) routing
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  }
+});
 
 // Setup Queue Events for WebSockets
 setupQueueEvents(io);
