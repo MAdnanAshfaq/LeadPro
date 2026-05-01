@@ -1,7 +1,10 @@
 import asyncio
 import os
+from dotenv import load_dotenv
 from bullmq import Worker
 from scraper import run_scrape
+
+load_dotenv()
 
 async def process_job(job, job_token):
     print(f"Processing job {job.id} with data: {job.data}")

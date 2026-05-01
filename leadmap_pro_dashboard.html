@@ -1,0 +1,324 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+
+.lm-wrap{padding:1rem 0}
+
+.top-bar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.top-bar h2{font-size:18px;font-weight:500;flex:1}
+.badge-count{background:var(--color-background-info);color:var(--color-text-info);font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px}
+
+.search-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+.search-row input,.search-row select{flex:1;min-width:120px;font-size:14px}
+.search-row button{white-space:nowrap}
+
+.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:1rem}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--color-text-secondary);background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:var(--color-text-primary);border-bottom-color:var(--color-text-primary);font-weight:500}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.stat-label{font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:500}
+
+.table-wrap{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.tbl-top{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tbl-top span{font-size:13px;color:var(--color-text-secondary)}
+.export-btns{display:flex;gap:6px}
+.export-btns button{font-size:12px;padding:4px 10px}
+
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+thead th{padding:8px 12px;text-align:left;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+tbody tr{border-bottom:0.5px solid var(--color-border-tertiary);transition:background 0.15s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--color-background-secondary)}
+td{padding:10px 12px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.biz-name{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.biz-cat{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+
+.contact-val{display:flex;align-items:center;gap:6px}
+.contact-val a{color:var(--color-text-info);text-decoration:none;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
+.contact-val a:hover{text-decoration:underline}
+.copy-btn{flex-shrink:0;background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;opacity:0.5;font-size:11px;line-height:1}
+.copy-btn:hover{opacity:1;background:var(--color-background-secondary)}
+
+.stars{display:flex;align-items:center;gap:3px;font-size:12px}
+.star-fill{color:#f59e0b}
+.star-empty{color:var(--color-text-secondary);opacity:0.3}
+.rating-num{font-weight:500;margin-left:2px}
+.review-ct{font-size:11px;color:var(--color-text-secondary);margin-left:2px}
+
+.score-pill{display:inline-flex;align-items:center;justify-content:center;width:36px;height:22px;border-radius:11px;font-size:11px;font-weight:500}
+.score-hi{background:var(--color-background-success);color:var(--color-text-success)}
+.score-md{background:var(--color-background-warning);color:var(--color-text-warning)}
+.score-lo{background:var(--color-background-danger);color:var(--color-text-danger)}
+
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-green{background:#22c55e}
+.dot-amber{background:#f59e0b}
+.dot-gray{background:var(--color-text-secondary);opacity:0.4}
+
+.tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;background:var(--color-background-secondary);color:var(--color-text-secondary)}
+
+.actions-cell{display:flex;gap:4px}
+.actions-cell button{padding:3px 8px;font-size:11px}
+
+.none-found{opacity:0.4;font-size:12px;font-style:italic}
+
+.detail-panel{position:fixed;top:0;right:0;bottom:0;width:320px;background:var(--color-background-primary);border-left:0.5px solid var(--color-border-tertiary);padding:1.25rem;overflow-y:auto;display:none;z-index:100}
+.detail-panel.open{display:block}
+.panel-close{float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--color-text-secondary);padding:0}
+.panel-name{font-size:16px;font-weight:500;margin:0.75rem 0 0.25rem;clear:both}
+.panel-cat{font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem}
+.panel-section{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);margin:1rem 0 0.5rem}
+.panel-row{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);gap:8px}
+.panel-row:last-child{border-bottom:none}
+.panel-key{font-size:12px;color:var(--color-text-secondary);flex-shrink:0}
+.panel-val{font-size:13px;text-align:right;word-break:break-all}
+.panel-val a{color:var(--color-text-info);text-decoration:none;font-size:13px}
+.score-bar-wrap{margin-top:0.5rem}
+.score-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.score-bar-track{height:6px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:3px;background:var(--color-text-success)}
+.copied-toast{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);padding:6px 16px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.2s;pointer-events:none;z-index:200}
+.copied-toast.show{opacity:1}
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">LeadMap Pro — Lead intelligence dashboard showing extracted business contacts</h2>
+
+<div class="lm-wrap">
+
+<div class="top-bar">
+  <h2>Lead Intelligence</h2>
+  <span class="badge-count" id="lead-badge">12 leads</span>
+</div>
+
+<div class="search-row">
+  <input type="text" placeholder="Industry or keyword (e.g. Plumbers)" id="inp-industry" value="Plumbers" />
+  <input type="text" placeholder="City or ZIP code" id="inp-location" value="Miami" />
+  <select id="inp-radius">
+    <option>5 km radius</option>
+    <option>10 km radius</option>
+    <option selected>25 km radius</option>
+    <option>50 km radius</option>
+  </select>
+  <button onclick="runSearch()" style="background:var(--color-background-info);color:var(--color-text-info);border-color:transparent">Search ↗</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-label">Leads found</div><div class="stat-val" id="stat-total">12</div></div>
+  <div class="stat-card"><div class="stat-label">Emails found</div><div class="stat-val" id="stat-emails">8</div></div>
+  <div class="stat-card"><div class="stat-label">Phones found</div><div class="stat-val" id="stat-phones">12</div></div>
+  <div class="stat-card"><div class="stat-label">Avg rating</div><div class="stat-val" id="stat-rating">4.2</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab(this,'leads')">All leads</button>
+  <button class="tab" onclick="switchTab(this,'hot')">Hot leads</button>
+  <button class="tab" onclick="switchTab(this,'enriched')">With email</button>
+</div>
+
+<div class="table-wrap">
+  <div class="tbl-top">
+    <span id="tbl-showing">Showing 12 results</span>
+    <div class="export-btns">
+      <button onclick="exportCSV()">CSV</button>
+      <button onclick="sendPrompt('Give me a detailed competitor analysis for Plumbers in Miami based on the leads found')">Competitor analysis ↗</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:180px">Business</th>
+        <th style="width:120px">Phone</th>
+        <th style="width:150px">Email</th>
+        <th style="width:90px">Website</th>
+        <th style="width:90px">Rating</th>
+        <th style="width:50px">Score</th>
+        <th style="width:60px">Status</th>
+        <th style="width:70px">Action</th>
+      </tr>
+    </thead>
+    <tbody id="leads-tbody"></tbody>
+  </table>
+  </div>
+</div>
+
+</div>
+
+<div class="detail-panel" id="detail-panel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div id="panel-content"></div>
+</div>
+<div class="copied-toast" id="toast">Copied!</div>
+
+<script>
+const LEADS = [
+  {name:"Acosta Plumbing Service",cat:"Plumbing",phone:"(305) 555-0182",email:"info@acostaPlumbing.com",website:"acostaPlumbing.com",rating:4.8,reviews:214,addr:"1421 SW 8th St, Miami FL",score:91,status:"open",hot:true},
+  {name:"The Plumbers",cat:"Plumbing · Emergency",phone:"(305) 555-0267",email:"",website:"theplumbers.com",rating:4.5,reviews:87,addr:"320 NW 36th St, Miami FL",score:76,status:"open",hot:true},
+  {name:"Miami 24/7 Plumbing",cat:"Emergency Plumbing",phone:"(786) 555-0341",email:"dispatch@miami247.com",website:"miami247plumbing.com",rating:4.7,reviews:512,addr:"5580 Biscayne Blvd, Miami FL",score:94,status:"open",hot:true},
+  {name:"Main Plumbing Services",cat:"Plumbing",phone:"(305) 555-0098",email:"mainplumbing@gmail.com",website:"mainplumbing.net",rating:4.2,reviews:43,addr:"7901 NW 27th Ave, Miami FL",score:72,status:"open",hot:false},
+  {name:"Roto-Rooter Plumbing",cat:"Drain · Plumbing",phone:"(305) 555-0155",email:"miami@rotorooter.com",website:"rotorooter.com",rating:4.0,reviews:376,addr:"2665 S Bayshore Dr, Miami FL",score:85,status:"open",hot:false},
+  {name:"AAA Plumbing Services",cat:"Plumbing",phone:"(786) 555-0422",email:"",website:"aaaplumbingservices.com",rating:3.8,reviews:29,addr:"980 NW 7th Ave, Miami FL",score:58,status:"closed",hot:false},
+  {name:"Empire Plumbing",cat:"Commercial · Residential",phone:"(305) 555-0519",email:"empire@plumbingmiami.com",website:"empireplumbing.com",rating:4.6,reviews:198,addr:"3250 Mary St, Miami FL",score:88,status:"open",hot:true},
+  {name:"AKO Plumbing Corp.",cat:"Plumbing",phone:"(786) 555-0603",email:"",website:"",rating:4.1,reviews:61,addr:"1190 NW 79th St, Miami FL",score:55,status:"open",hot:false},
+  {name:"Oasis Plumbing",cat:"Plumbing · Water Heaters",phone:"(305) 555-0718",email:"contact@oasisplumbing.com",website:"oasisplumbing.com",rating:4.9,reviews:302,addr:"6625 SW 57th Ave, Miami FL",score:95,status:"open",hot:true},
+  {name:"Miami Beach Super Plumber",cat:"Plumbing",phone:"(305) 555-0834",email:"superplumber@miamibeach.com",website:"superplumber.miami",rating:4.4,reviews:118,addr:"1601 Collins Ave, Miami Beach FL",score:80,status:"open",hot:false},
+  {name:"Coastal Plumbing of Brickell",cat:"Luxury · Residential",phone:"(786) 555-0967",email:"hello@coastalplumbing.co",website:"coastalplumbing.co",rating:4.7,reviews:89,addr:"801 Brickell Key Dr, Miami FL",score:87,status:"open",hot:false},
+  {name:"QuickFix Plumbing Miami",cat:"Emergency Plumbing",phone:"(305) 555-1020",email:"",website:"quickfixmiami.com",rating:3.5,reviews:22,addr:"440 NE 2nd Ave, Miami FL",score:48,status:"open",hot:false},
+];
+
+let currentTab = 'leads';
+let openLead = null;
+
+function getFiltered(){
+  if(currentTab==='hot') return LEADS.filter(l=>l.hot);
+  if(currentTab==='enriched') return LEADS.filter(l=>l.email);
+  return LEADS;
+}
+
+function stars(r){
+  let s='';
+  for(let i=1;i<=5;i++) s+=`<span class="${i<=Math.round(r)?'star-fill':'star-empty'}">★</span>`;
+  return s;
+}
+
+function scoreClass(s){return s>=80?'score-hi':s>=60?'score-md':'score-lo'}
+
+function copy(text,btn){
+  navigator.clipboard.writeText(text).catch(()=>{});
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1500);
+}
+
+function renderTable(){
+  const data=getFiltered();
+  const tbody=document.getElementById('leads-tbody');
+  document.getElementById('tbl-showing').textContent=`Showing ${data.length} results`;
+  tbody.innerHTML=data.map((l,i)=>`
+    <tr onclick="openPanel(${LEADS.indexOf(l)})">
+      <td>
+        <div class="biz-name">${l.name}</div>
+        <div class="biz-cat">${l.cat}</div>
+      </td>
+      <td>
+        <div class="contact-val">
+          ${l.phone?`<a href="tel:${l.phone}" onclick="event.stopPropagation()">${l.phone}</a>
+          <button class="copy-btn" onclick="event.stopPropagation();copy('${l.phone}')" title="Copy">⎘</button>`
+          :`<span class="none-found">—</span>`}
+        </div>
+      </td>
+      <td>
+        <div class="contact-val">
+          ${l.email?`<a href="mailto:${l.email}" onclick="event.stopPropagation()" title="${l.email}">${l.email}</a>
+          <button class="copy-btn" onclick="event.stopPropagation();copy('${l.email}')" title="Copy">⎘</button>`
+          :`<span class="none-found">Not found</span>`}
+        </div>
+      </td>
+      <td>
+        ${l.website?`<a href="https://${l.website}" target="_blank" onclick="event.stopPropagation()" style="color:var(--color-text-info);font-size:12px;text-decoration:none">${l.website.split('/')[0]}</a>`
+        :`<span class="none-found">—</span>`}
+      </td>
+      <td>
+        <div class="stars">${stars(l.rating)}<span class="rating-num">${l.rating}</span><span class="review-ct">(${l.reviews})</span></div>
+      </td>
+      <td><span class="score-pill ${scoreClass(l.score)}">${l.score}</span></td>
+      <td>
+        <span style="display:flex;align-items:center;gap:4px">
+          <span class="status-dot ${l.status==='open'?'dot-green':'dot-gray'}"></span>
+          <span style="font-size:11px;color:var(--color-text-secondary)">${l.status==='open'?'Open':'Closed'}</span>
+        </span>
+      </td>
+      <td>
+        <div class="actions-cell">
+          <button onclick="event.stopPropagation();sendPrompt('Find more details and outreach ideas for ${l.name} in Miami')" title="Research">↗</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openPanel(i){
+  openLead=i;
+  const l=LEADS[i];
+  const panel=document.getElementById('detail-panel');
+  const scoreItems=[
+    {label:'Phone',val:l.phone?10:0,max:10},
+    {label:'Email',val:l.email?15:0,max:15},
+    {label:'Website',val:l.website?10:0,max:10},
+    {label:'Rating',val:Math.round((l.rating/5)*20),max:20},
+    {label:'Reviews',val:Math.min(20,Math.round((l.reviews/100)*20)),max:20},
+  ];
+  document.getElementById('panel-content').innerHTML=`
+    <div style="display:inline-block;width:40px;height:40px;border-radius:50%;background:var(--color-background-info);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:14px;color:var(--color-text-info)">${l.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+    <p class="panel-name">${l.name}</p>
+    <p class="panel-cat">${l.cat}</p>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:0.75rem">
+      <div class="stars">${stars(l.rating)}</div>
+      <span style="font-weight:500">${l.rating}</span>
+      <span style="color:var(--color-text-secondary);font-size:12px">(${l.reviews} reviews)</span>
+    </div>
+
+    <div class="panel-section">Contact details</div>
+    <div class="panel-row"><span class="panel-key">Phone</span><span class="panel-val" style="display:flex;gap:6px;align-items:center"><a href="tel:${l.phone}">${l.phone||'—'}</a>${l.phone?`<button class="copy-btn" onclick="copy('${l.phone}')">⎘</button>`:''}</span></div>
+    <div class="panel-row"><span class="panel-key">Email</span><span class="panel-val" style="display:flex;gap:6px;align-items:center">${l.email?`<a href="mailto:${l.email}">${l.email}</a><button class="copy-btn" onclick="copy('${l.email}')">⎘</button>`:'<span style="opacity:0.4;font-style:italic">Not enriched yet</span>'}</span></div>
+    <div class="panel-row"><span class="panel-key">Website</span><span class="panel-val">${l.website?`<a href="https://${l.website}" target="_blank">${l.website}</a>`:'—'}</span></div>
+    <div class="panel-row"><span class="panel-key">Address</span><span class="panel-val" style="white-space:normal;font-size:12px">${l.addr}</span></div>
+    <div class="panel-row"><span class="panel-key">Status</span><span class="panel-val" style="display:flex;gap:5px;align-items:center;justify-content:flex-end"><span class="status-dot ${l.status==='open'?'dot-green':'dot-gray'}"></span>${l.status==='open'?'Open now':'Closed'}</span></div>
+
+    <div class="panel-section">Lead score — ${l.score}/100</div>
+    ${scoreItems.map(s=>`
+      <div class="score-bar-wrap">
+        <div class="score-bar-label"><span>${s.label}</span><span>${s.val}/${s.max}</span></div>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:${Math.round(s.val/s.max*100)}%;background:${s.val===s.max?'var(--color-text-success)':'var(--color-text-warning)'}"></div></div>
+      </div>
+    `).join('')}
+
+    <div style="margin-top:1rem;display:flex;flex-direction:column;gap:6px">
+      <button onclick="sendPrompt('Write a cold outreach email to ${l.name}, a plumbing company in Miami. Their email is ${l.email||'unknown'}. Keep it short and relevant.')" style="width:100%">Write outreach email ↗</button>
+      <button onclick="sendPrompt('Analyse the reviews and competitive position of ${l.name} in Miami plumbing market')" style="width:100%">Competitor analysis ↗</button>
+    </div>
+  `;
+  panel.classList.add('open');
+}
+
+function closePanel(){
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+function switchTab(el,tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab=tab;
+  renderTable();
+}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent=LEADS.length;
+  document.getElementById('stat-emails').textContent=LEADS.filter(l=>l.email).length;
+  document.getElementById('stat-phones').textContent=LEADS.filter(l=>l.phone).length;
+  document.getElementById('stat-rating').textContent=(LEADS.reduce((a,l)=>a+l.rating,0)/LEADS.length).toFixed(1);
+  document.getElementById('lead-badge').textContent=LEADS.length+' leads';
+}
+
+function runSearch(){
+  sendPrompt(`Search Google Maps for ${document.getElementById('inp-industry').value} businesses in ${document.getElementById('inp-location').value} and show me their contact details, phone numbers and emails`);
+}
+
+function exportCSV(){
+  const headers=['Business','Category','Phone','Email','Website','Rating','Reviews','Score','Address','Status'];
+  const rows=getFiltered().map(l=>[l.name,l.cat,l.phone,l.email,l.website,l.rating,l.reviews,l.score,l.addr,l.status]);
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='leadmap_plumbers_miami.csv';
+  a.click();
+}
+
+updateStats();
+renderTable();
+</script>

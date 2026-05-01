@@ -47,7 +47,7 @@ app.post('/api/v1/search', async (req, res) => {
   }
 });
 
-io.on('connection', (socket) => {
+io.on('connection', (socket: any) => {
   console.log('Client connected:', socket.id);
   
   socket.on('disconnect', () => {
